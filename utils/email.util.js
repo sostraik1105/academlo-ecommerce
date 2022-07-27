@@ -43,12 +43,10 @@ class Email {
         await this.send('welcome', 'Welcome to our app', { name });
     }
 
-    async sendNewPost(title, price, quantity, totalPrice) {
+    async sendNewPurchase(newOrder, emailProducts) {
         await this.send('purchase', 'thanks for your purchase', {
-            title,
-            price,
-            quantity,
-            totalPrice,
+            newOrder,
+            emailProducts,
         });
     }
 }

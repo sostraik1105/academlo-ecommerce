@@ -6,6 +6,7 @@ const { ProductsInCarts } = require('../models/productsInCart.model');
 const { errorHandler } = require('../utils/errorHandler.util');
 const { AppError } = require('../utils/appError.util');
 const { Orders } = require('../models/orders.model');
+const { Email } = require('../utils/email.util');
 
 // GET - find cart by user
 exports.findCartByUser = errorHandler(async (req, res, next) => {
@@ -54,6 +55,12 @@ exports.addProduct = errorHandler(async (req, res, next) => {
             quantity,
         });
     } else {
+        // remove all products from cart
+        await ProductsInCarts.update(
+            { status: 'removed', quantity: 0 },
+            { where: { status: 'purchased', cartId: userCart.id } }
+        );
+
         const productInCart = await ProductsInCarts.findOne({
             where: { productId, cartId: userCart.id },
         });
@@ -133,7 +140,7 @@ exports.deleteProductInCart = errorHandler(async (req, res, next) => {
 
 // POST - purchase cart
 exports.purchaseCart = errorHandler(async (req, res, next) => {
-    const { id } = req.sessionUser;
+    const { id, email } = req.sessionUser;
 
     let totalPrice = 0;
 
@@ -157,8 +164,6 @@ exports.purchaseCart = errorHandler(async (req, res, next) => {
         const updateQty =
             productInCart.product.quantity - productInCart.quantity;
 
-        console.log(productInCart);
-
         await Products.update(
             { quantity: updateQty },
             { where: { id: productInCart.productId } }
@@ -178,6 +183,16 @@ exports.purchaseCart = errorHandler(async (req, res, next) => {
         cartId: userCart.id,
         totalPrice,
     });
+
+    const emailProducts = await ProductsInCarts.findAll({
+        where: {
+            cartId: newOrder.cartId,
+            status: 'purchased',
+        },
+        include: [{ model: Products }],
+    });
+
+    await new Email(email).sendNewPurchase(newOrder, emailProducts);
 
     res.status(200).json({ status: 'success', newOrder });
 });

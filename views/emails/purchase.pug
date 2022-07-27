@@ -1,0 +1,9 @@
+extends base
+
+block emailContent
+    p Thanks for your purchase,
+    ul
+      each product in emailProducts
+        li producto: #{product.product.title} || valor: #{product.product.price} || cantidad: #{product.quantity}
+    p El precio total de la compra es: #{newOrder.totalPrice} 
+    p ¡Muchas gracias! por preferirnos.
