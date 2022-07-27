@@ -21,8 +21,6 @@ exports.userExists = errorHandler(async (req, res, next) => {
 
     req.dbUser = dbUser;
 
-    console.log(dbUser);
-
     next();
 });
 
